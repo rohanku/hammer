@@ -127,11 +127,14 @@ class Voltus(HammerPowerTool, CadenceTool):
                                                  self.filter_for_mmmc(voltage=corner.voltage, temp=corner.temp)])
 
     def get_mmmc_spice_corners(self, corner: MMMCCorner) -> List[str]:
-        return self.technology.read_libs([hammer_tech.filters.spice_model_lib_corner_filter],
+        print("getting mmc spice corners")
+        b = list(set([i.lib_corner for i in self.technology.read_libs_struct([hammer_tech.filters.spice_model_lib_corner_filter], 
                                              hammer_tech.HammerTechnologyUtils.to_plain_item,
                                              extra_pre_filters=[
                                                  self.filter_for_mmmc(voltage=corner.voltage, temp=corner.temp)],
-                                             must_exist=False)
+                                             must_exist=False) if i is not None]))
+        print(f"set is {b}")
+        return b
 
     @property
     def steps(self) -> List[HammerToolStep]:
@@ -188,6 +191,7 @@ class Voltus(HammerPowerTool, CadenceTool):
             if not corners:
                 # Start with tech-only library
                 options = tech_options.copy()
+                print("get_qrc_tech 194")
                 options.extend([
                     "-extraction_tech_file", self.get_qrc_tech(), # TODO: this assumes only 1 exists in no corners case
                     "-default_power_voltage", str(VoltageValue(self.get_setting("vlsi.inputs.supplies.VDD")).value_in_units("V"))
@@ -224,6 +228,8 @@ class Voltus(HammerPowerTool, CadenceTool):
                 for corner in corners:
                     # Start with tech-only library
                     options = tech_options.copy()
+                    print(f"{self.get_qrc_tech()} 231 CORNER for get_mmmc_qrc {corner}")
+                    #import pdb; pdb.set_trace()
                     options.extend([
                         "-extraction_tech_file", self.get_mmmc_qrc(corner), #TODO: QRC should be tied to stackup
                         "-default_power_voltage", str(corner.voltage.value),
@@ -242,6 +248,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                         options.extend(["-decap_cells", "{{ {} }}".format(" ".join(decaps_names))])
                     spice_models = self.get_mmmc_spice_models(corner)
                     spice_corners = self.get_mmmc_spice_corners(corner)
+                    print(f"spice corners: {spice_corners}")
                     if len(spice_models) == 0:
                         self.logger.error("Must specify Spice model files in tech plugin to generate stdcell PG libraries! Skipping.")
                         return True
@@ -274,6 +281,7 @@ class Voltus(HammerPowerTool, CadenceTool):
             extra_lib_lefs_mtimes = dict(zip(extra_lib_lefs, extra_lib_mtimes))
             extra_lib_lefs_json = os.path.join(self.run_dir, "extra_lib_lefs.json")
             extra_pg_libs = self.technology.read_libs([hammer_tech.filters.power_grid_library_filter], hammer_tech.HammerTechnologyUtils.to_plain_item, self.extra_lib_filter())
+
             # TODO: Use some filters w/ LEFUtils to extract cells from LEFs, e.g. MacroSize instead of using name field
             named_extra_libs = list(filter(lambda l: l.library.name is not None and l.library.power_grid_library not in extra_pg_libs, self.technology.get_extra_libraries()))  # type: List[hammer_tech.ExtraLibrary]
 
@@ -345,12 +353,14 @@ class Voltus(HammerPowerTool, CadenceTool):
 
                 if not corners:
                     options = macro_options.copy()
+                    print("get_qrc_tech 354")
                     options.extend([
                         "-extraction_tech_file", self.get_qrc_tech(), # TODO: this assumes only 1 exists in no corners case
                         "-default_power_voltage", str(VoltageValue(self.get_setting("vlsi.inputs.supplies.VDD")).value_in_units("V"))
                     ])
                     spice_models = self.technology.read_libs([hammer_tech.filters.spice_model_file_filter], hammer_tech.HammerTechnologyUtils.to_plain_item)
                     spice_corners = self.technology.read_libs([hammer_tech.filters.spice_model_lib_corner_filter], hammer_tech.HammerTechnologyUtils.to_plain_item)
+                    print(f"362 spice corners: {spice_corners}")
                     if len(spice_models) == 0:
                         self.logger.error("Must specify Spice model files in tech plugin to generate macro PG libraries")
                         return True
@@ -364,6 +374,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                 else:
                     for corner in corners:
                         options = macro_options.copy()
+                        print(f"372 CORNER for get_mmmc_qrc is {corner}")
                         options.extend([
                             "-extraction_tech_file", self.get_mmmc_qrc(corner), #TODO: QRC should be tied to stackup
                             "-default_power_voltage", str(corner.voltage.value),
@@ -371,6 +382,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                         ])
                         spice_models = self.get_mmmc_spice_models(corner)
                         spice_corners = self.get_mmmc_spice_corners(corner)
+                        print(f"384 SPICE CORNERS: {spice_corners}")
                         if len(spice_models) == 0:
                             self.logger.error("Must specify Spice model files in tech plugin to generate macro PG libraries")
                             return True

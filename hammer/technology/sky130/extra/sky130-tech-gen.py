@@ -143,28 +143,34 @@ def main(args) -> int:
             lef_file = os.path.join(SKYWATER_LIBS,'lef', file_lib + '.lef')
             spice_file = os.path.join(SKYWATER_LIBS,'spice', file_lib + '.spice')
 
+        # TODO elam fix hardcoded spice model file and QRC library
         lib_entry = {
             "nldm_liberty_file":  os.path.join(SKYWATER_LIBS,'lib', cornerfilename),
             "verilog_sim":        os.path.join(SKYWATER_LIBS,'verilog', file_lib + '.v'),
             "lef_file":           lef_file,
             "spice_file":         spice_file,
             "gds_file":           os.path.join(SKYWATER_LIBS,'gds', gds_file),
+            "qrc_techfile": "/home/ff/eecs151/fa23/pdk_final/sky130_cds/sky130_prelim_release_091123/quantus_extraction_20230908/extraction/typical/qrcTechFile",
+            "spice_model_file": {
+                "path": "/home/ff/eecs151/fa23/pdk_final/sky130_cds/sky130_prelim_release_091123/models/sky130.lib.spice",
+                "lib_corner": "tt"
+                },
             "corner": {
                 "nmos": speed,
                 "pmos": speed,
                 "temperature": temp
-            },
+                },
             "supplies": {
                 "VDD": vdd,
                 "GND": "0 V"
-            },
+                },
             "provides": [
                 {
-                "lib_type": cell_name,
-                "vt": "RVT"
-                }
-            ]
-        }
+                    "lib_type": cell_name,
+                    "vt": "RVT"
+                    }
+                ]
+            }
 
         data["libraries"].append(lib_entry)
 
@@ -182,4 +188,4 @@ def main(args) -> int:
     return 0
 
 if __name__ == '__main__':
-  sys.exit(main(sys.argv))
+    sys.exit(main(sys.argv))
