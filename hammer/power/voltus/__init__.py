@@ -29,6 +29,9 @@ class Voltus(HammerPowerTool, CadenceTool):
     def env_vars(self) -> Dict[str, str]:
         new_dict = dict(super().env_vars)
         new_dict["VOLTUS_BIN"] = self.get_setting("power.voltus.voltus_bin")
+        new_dict["PATH"] = \
+            f"{os.environ.copy()['PATH']}:{self.get_setting('power.voltus.spectre_bin')}"
+
         return new_dict
 
     @property
