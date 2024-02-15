@@ -66,6 +66,7 @@ class SKY130Tech(HammerTechnology):
                 for line in sf:
                     line = line.replace('pfet_01v8_hvt', pmos)
                     line = line.replace('nfet_01v8'    , nmos)
+                    line = line.replace('sky130_fd_pr__res_generic_po', 'short')
                     df.write(line)
 
     # Copy and hack the verilog

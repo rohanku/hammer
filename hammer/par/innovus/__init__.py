@@ -1083,7 +1083,7 @@ class Innovus(HammerPlaceAndRouteTool, CadenceTool):
 
                         output.append("create_place_halo -insts {inst} -halo_deltas {{{s} {s} {s} {s}}} -snap_to_site".format(  
                             inst=new_path, s=place_push_out))
-                        output.append("set pg_blockage_shape [get_db [get_db hinsts {inst}][get_db insts {inst}] .place_halo_polygon]".format(
+                        output.append("set pg_blockage_shape [get_db [get_db hinsts {inst}][get_db insts {inst}] .route_halo_polygon]".format(
                             inst=new_path))
                         output.append("create_route_blockage -pg_nets -layers {{{layers}}} -polygon $pg_blockage_shape".format(layers=" ".join(cover_layers)))
                         
