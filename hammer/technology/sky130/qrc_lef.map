@@ -1,0 +1,14 @@
+extraction_setup \
+-technology_layer_map \
+met1 metal1 \
+met2 metal2 \
+met3 metal3 \
+met4 metal4 \
+met5 metal5 \
+li1 li \
+licon licon \
+mcon mcon \
+via via1 \
+via2 via2 \
+via3 via3 \
+via4 via4 \

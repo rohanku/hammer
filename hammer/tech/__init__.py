@@ -911,7 +911,7 @@ class HammerTechnology:
 
     def read_libs_struct(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
                   extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
-                  must_exist: bool = True) -> List[SpiceModelFile | None]:
+                  must_exist: bool = True) -> List[Library | None]:
         """
         Read the given libraries and return a list of strings according to some output format.
 
@@ -928,19 +928,13 @@ class HammerTechnology:
             assert isinstance(extra_pre_filters, List)
             pre_filts += extra_pre_filters
 
-        print("CALLING REDUCE LIST STR")
-        print(f"library_types: {library_types}")
-        a = map(
+        filtered_libs = map(
                 lambda lib: self.process_library_filter_struct(pre_filts=pre_filts, filt=lib),
                 library_types
             )
-        #print([i.spice_model_file for i in list(a)[0]])
-        b = [i.spice_model_file for i in list(a)[0] if i is not None]
-        print(b)
-        print("CALLING STRUCT REDUCE LIST STR")
-        print(f"library_types: {library_types}")
-        return b
-    
+
+        return list(filtered_libs)[0]
+
     def read_libs(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
                   extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
                   must_exist: bool = True) -> List[str]:

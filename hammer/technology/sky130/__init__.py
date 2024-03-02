@@ -150,12 +150,28 @@ class SKY130Tech(HammerTechnology):
         os.makedirs(cache_tech_dir_path, exist_ok=True)
         dest_path = cache_tech_dir_path / f'{self.library_name}__nom.tlef'
 
+        in_li1 = False
+        in_licon = False
+
         with open(source_path, 'r') as sf:
             with open(dest_path, 'w') as df:
                 self.logger.info("Modifying Technology LEF: {} -> {}".format
                     (source_path, dest_path))
                 for line in sf:
+                    #if line.strip() == 'LAYER licon':
+                        #in_licon = True
+                    #if line.strip() == 'LAYER li1':
+                        #in_li1 = True
+                    #if not in_licon and not in_li1:
                     df.write(line)
+
+                    #if line.strip() == 'END li1':
+                        #df.write(_li1_tlef_edit)
+                        #in_li1 = False
+                    #if line.strip() == 'END licon':
+                        #df.write(_licon_tlef_edit)
+                        #in_licon = False
+#
                     if line.strip() == 'END pwell':
                         df.write(_the_tlef_edit)
 
@@ -251,8 +267,19 @@ class SKY130Tech(HammerTechnology):
 
 _the_tlef_edit = '''
 LAYER licon
-  TYPE CUT ;
+  TYPE MASTERSLICE ;
 END licon
+'''
+
+_li1_tlef_edit = '''
+LAYER li1
+  TYPE MASTERSLICE ;
+END li1
+'''
+_licon_tlef_edit = '''
+LAYER li1
+  TYPE MASTERSLICE ;
+END li1
 '''
 
 
@@ -262,7 +289,7 @@ def sky130_innovus_settings(ht: HammerTool) -> bool:
     assert isinstance(ht, TCLTool), "innovus settings can only run on TCL tools"
     """Settings for every tool invocation"""
     ht.append(
-        '''
+        f'''
 
 ##########################################################
 # Placement attributes  [get_db -category place]

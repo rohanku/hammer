@@ -150,9 +150,9 @@ def main(args) -> int:
             "lef_file":           lef_file,
             "spice_file":         spice_file,
             "gds_file":           os.path.join(SKYWATER_LIBS,'gds', gds_file),
-            "qrc_techfile": "/home/ff/eecs151/fa23/pdk_final/sky130_cds/sky130_prelim_release_091123/quantus_extraction_20230908/extraction/typical/qrcTechFile",
+            #"qrc_techfile": "/scratch/eecs251b-aae/qrcTechFile",
             "spice_model_file": {
-                "path": "/home/ff/eecs151/fa23/pdk_final/sky130_cds/sky130_prelim_release_091123/models/sky130.lib.spice",
+                "path": "/scratch/eecs251b-aae/sky130_release_0.0.1/models/sky130.lib.spice",
                 "lib_corner": "tt"
                 },
             "corner": {
