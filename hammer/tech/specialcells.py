@@ -29,9 +29,9 @@ class SpecialCell(BaseModel):
     # Endcap, filler, etc.
     cell_type: CellType
     name: List[str]
-    size: Optional[List[str]]
-    input_ports: Optional[List[str]]
-    output_ports: Optional[List[str]]
+    size: Optional[List[str]] = None
+    input_ports: Optional[List[str]] = None
+    output_ports: Optional[List[str]] = None
 
     class Config:
         # https://stackoverflow.com/questions/65209934/pydantic-enum-field-does-not-get-converted-to-string
