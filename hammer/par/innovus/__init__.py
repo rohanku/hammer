@@ -631,17 +631,6 @@ class Innovus(HammerPlaceAndRouteTool, CadenceTool):
         # "WARNING (NRIG-142) Express flow by default will not run routing".
         self.verbose_append("set_db design_express_route true")
 
-    # take out qrc file from tech josn
-    # make a new hook that should be inserted post route_design,
-    #it runs update_rc_corner for each corner with hardcoded corner names from mmmc.tcl -qrc_tech <qrc tech>
-    # set_db extrat_rc effor thigh
-    # set_db postroute 
-    # lef map thing 
-    #  this hsould run iQuantus for optDesign?
-        # TODO elam make this better
-        #self.verbose_append("set_db extract_rc_engine post_route")
-
-
         self.verbose_append("route_design")
         return True
 
