@@ -150,11 +150,6 @@ def main(args) -> int:
             "lef_file":           lef_file,
             "spice_file":         spice_file,
             "gds_file":           os.path.join(SKYWATER_LIBS,'gds', gds_file),
-            #"qrc_techfile": "/scratch/eecs251b-aae/qrcTechFile",
-            "spice_model_file": {
-                "path": "/scratch/eecs251b-aae/sky130_release_0.0.1/models/sky130.lib.spice",
-                "lib_corner": "tt"
-                },
             "corner": {
                 "nmos": speed,
                 "pmos": speed,
