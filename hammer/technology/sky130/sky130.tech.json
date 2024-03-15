@@ -67,14 +67,6 @@
       ]
     },
     {
-      "spice_file": "$SKY130A/libs.ref/sky130_fd_io/spice/sky130_ef_io__analog.spice",
-      "provides": [
-        {
-          "lib_type": "technology"
-        }
-      ]
-    },
-    {
       "nldm_liberty_file": "$SKY130A/libs.ref/sky130_fd_sc_hd/lib/sky130_fd_sc_hd__ff_100C_1v65.lib",
       "verilog_sim": "cache/sky130_fd_sc_hd.v",
       "lef_file": "$SKY130A/libs.ref/sky130_fd_sc_hd/lef/sky130_fd_sc_hd.lef",

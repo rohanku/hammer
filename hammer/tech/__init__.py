@@ -45,7 +45,7 @@ class MinMaxCap(BaseModel):
 
 class Provide(BaseModel):
     lib_type: str
-    vt: Optional[str]
+    vt: Optional[str] = None
 
 
 class Supplies(BaseModel):
@@ -213,21 +213,21 @@ class Site(BaseModel):
 class TechJSON(BaseModel):
     name: str
     grid_unit: Optional[str]
-    shrink_factor: Optional[str]
-    installs: Optional[List[PathPrefix]]
-    libraries: Optional[List[Library]]
-    gds_map_file: Optional[str]
-    physical_only_cells_list: Optional[List[Cell]]
-    dont_use_list: Optional[List[Cell]]
-    drc_decks: Optional[List[DRCDeck]]
-    lvs_decks: Optional[List[LVSDeck]]
-    tarballs: Optional[List[Tarball]]
-    sites: Optional[List[Site]]
-    stackups: Optional[List[Stackup]]
-    special_cells: Optional[List[SpecialCell]]
-    extra_prefixes: Optional[List[PathPrefix]]
-    additional_lvs_text: Optional[str]
-    additional_drc_text: Optional[str]
+    shrink_factor: Optional[str] = None
+    installs: Optional[List[PathPrefix]] = None
+    libraries: Optional[List[Library]] = None
+    gds_map_file: Optional[str] = None
+    physical_only_cells_list: Optional[List[Cell]] = None
+    dont_use_list: Optional[List[Cell]] = None
+    drc_decks: Optional[List[DRCDeck]] = None
+    lvs_decks: Optional[List[LVSDeck]] = None
+    tarballs: Optional[List[Tarball]] = None
+    sites: Optional[List[Site]] = None
+    stackups: Optional[List[Stackup]] = None
+    special_cells: Optional[List[SpecialCell]] = None
+    extra_prefixes: Optional[List[PathPrefix]] = None
+    additional_lvs_text: Optional[str] = None
+    additional_drc_text: Optional[str] = None
 
 
 def copy_library(lib: Library) -> Library:
@@ -246,7 +246,7 @@ def library_from_json(json: str) -> Library:
 
 # Struct that holds an extra library and possible prefix.
 class ExtraLibrary(BaseModel):
-    prefix: Optional[PathPrefix]
+    prefix: Optional[PathPrefix] = None
     library: Library
 
     def store_into_library(self) -> Library:
@@ -790,6 +790,26 @@ class HammerTechnology:
         return list(self.tech_defined_libraries) + list(
             map(lambda el: el.store_into_library(), self.get_extra_libraries()))
 
+    def process_library_filter_struct(self,
+                               filt: LibraryFilter,
+                               pre_filts: List[Callable[[Library], bool]]) -> List[Library]:
+        # First, filter the list of available libraries with pre_filts and the library itself.
+        lib_filters = pre_filts + get_or_else(optional_map(filt.filter_func,
+                                                           lambda x: [x]), [])
+
+        filtered_libs = list(reduce_named(
+            sequence=lib_filters,
+            initial=self.get_available_libraries(),
+            function=lambda libs, func: filter(func, libs)
+        ))  # type: List[Library]
+
+        # Next, sort the list of libraries if a sort function exists.
+        if filt.sort_func is not None:
+            # Possible mypy quirk
+            filtered_libs = \
+                sorted(filtered_libs, key=filt.sort_func)  # type: ignore
+        return filtered_libs
+
     def process_library_filter(self,
                                filt: LibraryFilter,
                                pre_filts: List[Callable[[Library], bool]],
@@ -888,6 +908,32 @@ class HammerTechnology:
         # Concatenate lists of List[str] together.
         return reduce_list_str(add_lists, after_output_functions, [])
 
+    def read_libs_struct(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
+                  extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
+                  must_exist: bool = True) -> List[Library | None]:
+        """
+        Read the given libraries and return a list of strings according to some output format.
+
+        :param library_types: List of libraries to filter, specified as a list of LibraryFilter elements.
+        :param output_func: Function which processes the outputs, taking in the filtered lib and the library filter
+                            which generated it.
+        :param extra_pre_filters: List of additional filter functions to use to filter the list of libraries.
+        :param must_exist: Must each library item actually exist? Default: True (yes, they must exist)
+        :return: List of filtered libraries processed according output_func.
+        """
+
+        pre_filts = self.default_pre_filters()  # type: List[Callable[[Library], bool]]
+        if extra_pre_filters is not None:
+            assert isinstance(extra_pre_filters, List)
+            pre_filts += extra_pre_filters
+
+        filtered_libs = map(
+                lambda lib: self.process_library_filter_struct(pre_filts=pre_filts, filt=lib),
+                library_types
+            )
+
+        return list(filtered_libs)[0]
+
     def read_libs(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
                   extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
                   must_exist: bool = True) -> List[str]:
@@ -906,6 +952,7 @@ class HammerTechnology:
         if extra_pre_filters is not None:
             assert isinstance(extra_pre_filters, List)
             pre_filts += extra_pre_filters
+
 
         return reduce_list_str(
             add_lists,

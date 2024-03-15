@@ -29,6 +29,9 @@ class Voltus(HammerPowerTool, CadenceTool):
     def env_vars(self) -> Dict[str, str]:
         new_dict = dict(super().env_vars)
         new_dict["VOLTUS_BIN"] = self.get_setting("power.voltus.voltus_bin")
+        new_dict["PATH"] = \
+            f"{os.environ.copy()['PATH']}:{self.get_setting('power.voltus.spectre_bin')}"
+
         return new_dict
 
     @property
@@ -127,11 +130,11 @@ class Voltus(HammerPowerTool, CadenceTool):
                                                  self.filter_for_mmmc(voltage=corner.voltage, temp=corner.temp)])
 
     def get_mmmc_spice_corners(self, corner: MMMCCorner) -> List[str]:
-        return self.technology.read_libs([hammer_tech.filters.spice_model_lib_corner_filter],
+        return list(set([i.spice_model_file.lib_corner for i in self.technology.read_libs_struct([hammer_tech.filters.spice_model_lib_corner_filter], 
                                              hammer_tech.HammerTechnologyUtils.to_plain_item,
                                              extra_pre_filters=[
                                                  self.filter_for_mmmc(voltage=corner.voltage, temp=corner.temp)],
-                                             must_exist=False)
+                                             must_exist=False) if i is not None and i.spice_model_file is not None]))
 
     @property
     def steps(self) -> List[HammerToolStep]:
@@ -192,7 +195,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                     "-extraction_tech_file", self.get_qrc_tech(), # TODO: this assumes only 1 exists in no corners case
                     "-default_power_voltage", str(VoltageValue(self.get_setting("vlsi.inputs.supplies.VDD")).value_in_units("V"))
                 ])
-                ts_output.append("set_pg_library_mode {}".format(" ".join(options)))
+                ts_output.append("set_pg_library_mode {}".format(" ".join(options))) # TODO elam add -design_qrc_layer_map_file that maps to a file that harrison sent
                 ts_output.append("write_pg_library -out_dir {}".format(self.tech_lib_dir))
 
                 # Next do stdcell library
@@ -225,7 +228,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                     # Start with tech-only library
                     options = tech_options.copy()
                     options.extend([
-                        "-extraction_tech_file", self.get_mmmc_qrc(corner), #TODO: QRC should be tied to stackup
+                        "-extraction_tech_file", self.get_mmmc_qrc(corner),
                         "-default_power_voltage", str(corner.voltage.value),
                         "-temperature", str(corner.temp.value)
                     ])
@@ -274,9 +277,9 @@ class Voltus(HammerPowerTool, CadenceTool):
             extra_lib_lefs_mtimes = dict(zip(extra_lib_lefs, extra_lib_mtimes))
             extra_lib_lefs_json = os.path.join(self.run_dir, "extra_lib_lefs.json")
             extra_pg_libs = self.technology.read_libs([hammer_tech.filters.power_grid_library_filter], hammer_tech.HammerTechnologyUtils.to_plain_item, self.extra_lib_filter())
+
             # TODO: Use some filters w/ LEFUtils to extract cells from LEFs, e.g. MacroSize instead of using name field
             named_extra_libs = list(filter(lambda l: l.library.name is not None and l.library.power_grid_library not in extra_pg_libs, self.technology.get_extra_libraries()))  # type: List[hammer_tech.ExtraLibrary]
-
             if not os.path.isdir(self.macro_lib_dir):
                 self.logger.info("Characterizing macros for the first time...")
                 # First time: characterize all cells
