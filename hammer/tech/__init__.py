@@ -790,7 +790,6 @@ class HammerTechnology:
         return list(self.tech_defined_libraries) + list(
             map(lambda el: el.store_into_library(), self.get_extra_libraries()))
 
-    # TODO refactor the now-duplicated code in  process_library_filter
     def process_library_filter_struct(self,
                                filt: LibraryFilter,
                                pre_filts: List[Callable[[Library], bool]]) -> List[Library]:
