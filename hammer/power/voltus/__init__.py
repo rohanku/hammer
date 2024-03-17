@@ -29,8 +29,6 @@ class Voltus(HammerPowerTool, CadenceTool):
     def env_vars(self) -> Dict[str, str]:
         new_dict = dict(super().env_vars)
         new_dict["VOLTUS_BIN"] = self.get_setting("power.voltus.voltus_bin")
-        new_dict["PATH"] = \
-            f"{os.environ.copy()['PATH']}:{self.get_setting('power.voltus.spectre_bin')}"
 
         return new_dict
 
@@ -195,7 +193,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                     "-extraction_tech_file", self.get_qrc_tech(), # TODO: this assumes only 1 exists in no corners case
                     "-default_power_voltage", str(VoltageValue(self.get_setting("vlsi.inputs.supplies.VDD")).value_in_units("V"))
                 ])
-                ts_output.append("set_pg_library_mode {}".format(" ".join(options))) # TODO elam add -design_qrc_layer_map_file that maps to a file that harrison sent
+                ts_output.append("set_pg_library_mode {}".format(" ".join(options)))
                 ts_output.append("write_pg_library -out_dir {}".format(self.tech_lib_dir))
 
                 # Next do stdcell library
@@ -228,7 +226,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                     # Start with tech-only library
                     options = tech_options.copy()
                     options.extend([
-                        "-extraction_tech_file", self.get_mmmc_qrc(corner),
+                        "-extraction_tech_file", self.get_mmmc_qrc(corner), #TODO: QRC should be tied to stackup
                         "-default_power_voltage", str(corner.voltage.value),
                         "-temperature", str(corner.temp.value)
                     ])
