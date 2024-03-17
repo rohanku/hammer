@@ -29,7 +29,6 @@ class Voltus(HammerPowerTool, CadenceTool):
     def env_vars(self) -> Dict[str, str]:
         new_dict = dict(super().env_vars)
         new_dict["VOLTUS_BIN"] = self.get_setting("power.voltus.voltus_bin")
-
         return new_dict
 
     @property
@@ -275,9 +274,9 @@ class Voltus(HammerPowerTool, CadenceTool):
             extra_lib_lefs_mtimes = dict(zip(extra_lib_lefs, extra_lib_mtimes))
             extra_lib_lefs_json = os.path.join(self.run_dir, "extra_lib_lefs.json")
             extra_pg_libs = self.technology.read_libs([hammer_tech.filters.power_grid_library_filter], hammer_tech.HammerTechnologyUtils.to_plain_item, self.extra_lib_filter())
-
             # TODO: Use some filters w/ LEFUtils to extract cells from LEFs, e.g. MacroSize instead of using name field
             named_extra_libs = list(filter(lambda l: l.library.name is not None and l.library.power_grid_library not in extra_pg_libs, self.technology.get_extra_libraries()))  # type: List[hammer_tech.ExtraLibrary]
+
             if not os.path.isdir(self.macro_lib_dir):
                 self.logger.info("Characterizing macros for the first time...")
                 # First time: characterize all cells

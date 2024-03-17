@@ -176,7 +176,6 @@ class SKY130Tech(HammerTechnology):
                     (source_path, dest_path))
                 for line in sf:
                     df.write(line)
-
                     if line.strip() == 'END pwell':
                         df.write(_the_tlef_edit)
 
@@ -238,7 +237,6 @@ class SKY130Tech(HammerTechnology):
                         #     sl[idx_end_broken_macro] = end_fixed_macro
                 
                 df.writelines(sl)
-
 
     def get_tech_par_hooks(self, tool_name: str) -> List[HammerToolHookAction]:
         hooks = {
