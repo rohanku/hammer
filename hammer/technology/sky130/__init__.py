@@ -101,23 +101,23 @@ class SKY130Tech(HammerTechnology):
             sl = sf.readlines()
 
             # Find timing declaration
-            start_idx = [idx for idx, line in enumerate(sl) if "`ifndef SKY130_FD_SC_HD__LPFLOW_BLEEDER_1_TIMING_V" in line][0]
-
-            # Search for the broken statement
-            search_range = range(start_idx+1, len(sl))
-            broken_specify_idx = len(sl)-1
-            broken_substr = "(SHORT => VPWR) = (0:0:0,0:0:0,0:0:0,0:0:0,0:0:0,0:0:0);"
-
-            broken_specify_idx = [idx for idx in search_range if broken_substr in sl[idx]][0]
-            endif_idx = [idx for idx in search_range if "`endif" in sl[idx]][0]
-
-            # Now, delete all the specify statements if specify exists before an endif.
-            if broken_specify_idx < endif_idx:
-                self.logger.info("Removing incorrectly formed specify block.")
-                cell_def_range = range(start_idx+1, endif_idx)
-                start_specify_idx = [idx for idx in cell_def_range if "specify" in sl[idx]][0]
-                end_specify_idx = [idx for idx in cell_def_range if "endspecify" in sl[idx]][0]
-                sl[start_specify_idx:end_specify_idx+1] = [] # Dice
+            # start_idx = [idx for idx, line in enumerate(sl) if "`ifndef SKY130_FD_SC_HD__LPFLOW_BLEEDER_1_TIMING_V" in line][0]
+            #             
+            # # Search for the broken statement
+            # search_range = range(start_idx+1, len(sl))
+            # broken_specify_idx = len(sl)-1
+            # broken_substr = "(SHORT => VPWR) = (0:0:0,0:0:0,0:0:0,0:0:0,0:0:0,0:0:0);"
+            # 
+            # broken_specify_idx = [idx for idx in search_range if broken_substr in sl[idx]][0]
+            # endif_idx = [idx for idx in search_range if "`endif" in sl[idx]][0]
+            # 
+            # # Now, delete all the specify statements if specify exists before an endif.
+            # if broken_specify_idx < endif_idx:
+            #     self.logger.info("Removing incorrectly formed specify block.")
+            #     cell_def_range = range(start_idx+1, endif_idx)
+            #     start_specify_idx = [idx for idx in cell_def_range if "specify" in sl[idx]][0]
+            #     end_specify_idx = [idx for idx in cell_def_range if "endspecify" in sl[idx]][0]
+            #     sl[start_specify_idx:end_specify_idx+1] = [] # Dice            
 
         # Deal with the nonexistent net tactfully (don't code in brittle replacements)
         self.logger.info("Fixing broken net references with select specify blocks.")
@@ -229,12 +229,12 @@ class SKY130Tech(HammerTechnology):
                         # Find the start of the next_macro
                         idx_start_next_macro = [idx for idx in range(idx_broken_macro+1, len(sl)) if "MACRO" in sl[idx]][0]
                         # Find the broken macro ending
-                        idx_end_broken_macro = len(sl)
-                        idx_end_broken_macro = [idx for idx in range(idx_broken_macro+1, len(sl)) if end_broken_macro in sl[idx]][0]
-
-                        # Fix
-                        if idx_end_broken_macro < idx_start_next_macro:
-                            sl[idx_end_broken_macro] = end_fixed_macro
+                        # idx_end_broken_macro = len(sl)
+                        # idx_end_broken_macro = [idx for idx in range(idx_broken_macro+1, len(sl)) if end_broken_macro in sl[idx]][0]
+                        # 
+                        # # Fix
+                        # if idx_end_broken_macro < idx_start_next_macro: 
+                        #     sl[idx_end_broken_macro] = end_fixed_macro
                 
                 df.writelines(sl)
 
