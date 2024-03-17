@@ -8,6 +8,7 @@ import os, shutil
 from pathlib import Path
 from typing import NamedTuple, List, Optional, Tuple, Dict, Set, Any
 import importlib
+import importlib.resources
 import json
 
 import hammer.tech
@@ -212,7 +213,7 @@ class SKY130Tech(HammerTechnology):
                     # force class to spacer
                     start = [idx for idx, line in enumerate(sl) if f'MACRO {cell}' in line]
                     sl[start[0] + 1] = sl[start[0] + 1].replace('AREAIO', 'SPACER')
-                    
+
                 # Current version has two one-off error that break lef parser.
                 self.logger.info("Fixing broken sky130_ef_io__analog_esd_pad LEF definition.")
                 start_broken_macro_list = ["MACRO sky130_ef_io__analog_esd_pad\n", "MACRO sky130_ef_io__analog_pad\n"]
@@ -222,7 +223,7 @@ class SKY130Tech(HammerTechnology):
                 for start_broken_macro, end_broken_macro, end_fixed_macro in zip(start_broken_macro_list, end_broken_macro_list, end_fixed_macro_list):
                     # Get all start indices to be checked
                     start_check_indices = [idx for idx, line in enumerate(sl) if line == start_broken_macro]
-                    
+
                     # Extract broken macro
                     for idx_broken_macro in  start_check_indices:
                         # Find the start of the next_macro
@@ -476,12 +477,18 @@ def pegasus_lvs_blackbox_srams(ht: HammerTool) -> bool:
     for name in SKY130Tech.sky130_sram_names():
         lvs_box += f"\nlvs_black_box {name} -gray"
     run_file = ht.lvs_ctl_file  # type: ignore
-    with open(run_file, "a") as f:
-        f.write(lvs_box)
+    with open(run_file, "r+") as f:
+        # Remove SRAM SPICE file includes.
+        pattern = 'schematic_path.*({}).*spice;\n'.format('|'.join(SKY130Tech.sky130_sram_names()))
+        matcher = re.compile(pattern)
+        contents = f.read()
+        fixed_contents = matcher.sub("", contents) + lvs_box
+        f.seek(0)
+        f.write(fixed_contents)
     return True
 
 def sram22_lvs_recognize_gates_all(ht: HammerTool) -> bool:
-    assert isinstance(ht, HammerLVSTool), "Change 'LVS RECOGNIZE GATES' from 'NONE' to 'ALL' for Sram22"
+    assert isinstance(ht, HammerLVSTool), "Change 'LVS RECOGNIZE GATES' from 'NONE' to 'ALL' for SRAM22"
     run_file = ht.lvs_run_file  # type: ignore
     with open(run_file, "a") as f:
         f.write("LVS RECOGNIZE GATES ALL")
@@ -522,7 +529,7 @@ def setup_calibre_lvs_deck(ht: HammerTool) -> bool:
             continue
         if not source_path.exists():
             raise FileNotFoundError(f"LVS deck not found: {source_path}")
-        dest_path = ht.technology.expand_tech_cache_path(str(deck.path))
+        dest_path = deck.path
         ht.technology.ensure_dirs_exist(dest_path)
         with open(source_path, 'r') as sf:
             with open(dest_path, 'w') as df:
