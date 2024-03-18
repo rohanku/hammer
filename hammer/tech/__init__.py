@@ -790,6 +790,27 @@ class HammerTechnology:
         return list(self.tech_defined_libraries) + list(
             map(lambda el: el.store_into_library(), self.get_extra_libraries()))
 
+
+    def process_library_filter_struct(self,
+                               filt: LibraryFilter,
+                               pre_filts: List[Callable[[Library], bool]]) -> List[Library]:
+        # First, filter the list of available libraries with pre_filts and the library itself.
+        lib_filters = pre_filts + get_or_else(optional_map(filt.filter_func,
+                                                           lambda x: [x]), [])
+
+        filtered_libs = list(reduce_named(
+            sequence=lib_filters,
+            initial=self.get_available_libraries(),
+            function=lambda libs, func: filter(func, libs)
+        ))  # type: List[Library]
+
+        # Next, sort the list of libraries if a sort function exists.
+        if filt.sort_func is not None:
+            # Possible mypy quirk
+            filtered_libs = \
+                sorted(filtered_libs, key=filt.sort_func)  # type: ignore
+        return filtered_libs
+
     def process_library_filter(self,
                                filt: LibraryFilter,
                                pre_filts: List[Callable[[Library], bool]],
@@ -887,6 +908,31 @@ class HammerTechnology:
 
         # Concatenate lists of List[str] together.
         return reduce_list_str(add_lists, after_output_functions, [])
+
+    def read_libs_struct(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
+                  extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
+                  must_exist: bool = True) -> List[Library | None]:
+        """
+        Read the given libraries and return a list of strings according to some output format.
+        :param library_types: List of libraries to filter, specified as a list of LibraryFilter elements.
+        :param output_func: Function which processes the outputs, taking in the filtered lib and the library filter
+                            which generated it.
+        :param extra_pre_filters: List of additional filter functions to use to filter the list of libraries.
+        :param must_exist: Must each library item actually exist? Default: True (yes, they must exist)
+        :return: List of filtered libraries processed according output_func.
+        """
+
+        pre_filts = self.default_pre_filters()  # type: List[Callable[[Library], bool]]
+        if extra_pre_filters is not None:
+            assert isinstance(extra_pre_filters, List)
+            pre_filts += extra_pre_filters
+
+        filtered_libs = map(
+                lambda lib: self.process_library_filter_struct(pre_filts=pre_filts, filt=lib),
+                library_types
+            )
+
+        return list(filtered_libs)[0]
 
     def read_libs(self, library_types: Iterable[LibraryFilter], output_func: Callable[[str, LibraryFilter], List[str]],
                   extra_pre_filters: Optional[List[Callable[[Library], bool]]] = None,
