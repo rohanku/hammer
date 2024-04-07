@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Callable, cast
 
 import os
 import json
+import subprocess
 
 from hammer.config import HammerJSONEncoder
 from hammer.utils import in_place_unique
@@ -555,9 +556,15 @@ class Voltus(HammerPowerTool, CadenceTool):
             etime_ns = TimeValue(waveform_etime).value_in_units("ns")
             # Set format intelligently based on file extension. Strip .gz if present.
             waveform_ext = os.path.splitext(waveform_path.rstrip(".gz"))[1].lower()
+            waveform_abs_path = os.path.join(os.getcwd(), waveform_path)
             if waveform_format_map.get(waveform_ext) is None:
                 self.logger.error("Only VCD/VPD, FSDB, and SHM waveform formats supported.")
-            verbose_append("read_activity_file -reset -format {FORMAT} {WAVEFORM_PATH} -start {stime}ns -end {etime}ns -scope {TESTBENCH}".format(FORMAT=waveform_format_map.get(waveform_ext), WAVEFORM_PATH=os.path.join(os.getcwd(), waveform_path), TESTBENCH=tb_scope, stime=stime_ns, etime=etime_ns))
+            if waveform_ext == ".vpd":
+                vcd_abs_path = waveform_abs_path.rstrip(".gz").replace(".vpd", ".vcd")
+                print(waveform_abs_path, vcd_abs_path)
+                subprocess.run(["vpd2vcd", waveform_abs_path, vcd_abs_path])
+                waveform_abs_path = vcd_abs_path
+            verbose_append("read_activity_file -reset -format {FORMAT} {WAVEFORM_PATH} -start {stime}ns -end {etime}ns -scope {TESTBENCH}".format(FORMAT=waveform_format_map.get(waveform_ext), WAVEFORM_PATH=waveform_abs_path, TESTBENCH=tb_scope, stime=stime_ns, etime=etime_ns))
             waveform_file = os.path.basename(waveform_path)
             # Report based on MMMC mode
             if not corners:
