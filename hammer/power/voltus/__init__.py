@@ -561,8 +561,7 @@ class Voltus(HammerPowerTool, CadenceTool):
                 self.logger.error("Only VCD/VPD, FSDB, and SHM waveform formats supported.")
             if waveform_ext == ".vpd":
                 vcd_abs_path = waveform_abs_path.rstrip(".gz").replace(".vpd", ".vcd")
-                print(waveform_abs_path, vcd_abs_path)
-                subprocess.run(["vpd2vcd", waveform_abs_path, vcd_abs_path])
+                subprocess.run(["vpd2vcd", "-full64", waveform_abs_path, vcd_abs_path])
                 waveform_abs_path = vcd_abs_path
             verbose_append("read_activity_file -reset -format {FORMAT} {WAVEFORM_PATH} -start {stime}ns -end {etime}ns -scope {TESTBENCH}".format(FORMAT=waveform_format_map.get(waveform_ext), WAVEFORM_PATH=waveform_abs_path, TESTBENCH=tb_scope, stime=stime_ns, etime=etime_ns))
             waveform_file = os.path.basename(waveform_path)
